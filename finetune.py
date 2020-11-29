@@ -29,17 +29,6 @@ narratives = narratives[:1000]
 model = MBartForConditionalGeneration.from_pretrained('facebook/mbart-large-cc25')
 tokenizer = MBartTokenizer.from_pretrained('facebook/mbart-large-cc25')
 
-
-# example_english_phrase = "UN Chief Says There Is No Military Solution in Syria"
-# expected_translation_romanian = "Şeful ONU declară că nu există o soluţie militară în Siria"
-# batch = tokenizer.prepare_seq2seq_batch(example_english_phrase, src_lang="en_XX", tgt_lang="en_XX", tgt_texts=expected_translation_romanian)
-
-# print(batch)
-
-# logits = model(batch['input_ids'], attention_mask=batch['attention_mask'], labels=batch['labels']).logits
-
-# print(logits)
-
 train_objects, val_objects, train_narratives, val_narratives = train_test_split(objects, narratives, test_size=.2)
 
 train_dataset = NarrativesDataset(tokenizer, train_objects, train_narratives)
@@ -49,21 +38,21 @@ print(train_dataset.__len__())
 print(val_dataset.__len__())
 
 training_args = TrainingArguments(
-    output_dir='./results',          # output directory
-    num_train_epochs=3,              # total number of training epochs
-    per_device_train_batch_size=7,  # batch size per device during training
-    per_device_eval_batch_size=64,   # batch size for evaluation
-    warmup_steps=500,                # number of warmup steps for learning rate scheduler
-    weight_decay=0.01,               # strength of weight decay
-    logging_dir='./logs',            # directory for storing logs
+    output_dir='./results',
+    num_train_epochs=3,
+    per_device_train_batch_size=7,
+    per_device_eval_batch_size=64,
+    warmup_steps=500,
+    weight_decay=0.01,
+    logging_dir='./logs',
     logging_steps=10,
 )
 
 trainer = Trainer(
-    model=model,                         
-    args=training_args,                  
-    train_dataset=train_dataset,         
-    eval_dataset=val_dataset,             
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
     data_collator=NarrativesDataCollator(tokenizer)
 )
 
