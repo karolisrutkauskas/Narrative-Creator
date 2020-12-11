@@ -1,4 +1,4 @@
-from transformers import MBartTokenizer, MBartForConditionalGeneration, Trainer, TrainingArguments
+from transformers import BartTokenizer, BartForConditionalGeneration, Trainer, TrainingArguments
 import torch
 from utils import NarrativesDataset, NarrativesDataCollator
 from sklearn.model_selection import train_test_split
@@ -14,7 +14,7 @@ def read_dataset(path):
         narrative_list = []
         for item in json_list:
             result = json.loads(item)
-            object_list.append(' '.join(result['objects']))
+            object_list.append(result['objects'])
             narrative_list.append(result['narrative'])
     
     return object_list, narrative_list
@@ -23,29 +23,28 @@ dataset_path = sys.argv[1]
 
 objects, narratives = read_dataset(dataset_path)
 
-objects = objects[:1000]
-narratives = narratives[:1000]
+# objects = objects[:30000]
+# narratives = narratives[:30000]
 
-model = MBartForConditionalGeneration.from_pretrained('facebook/mbart-large-cc25')
-tokenizer = MBartTokenizer.from_pretrained('facebook/mbart-large-cc25')
+model = BartForConditionalGeneration.from_pretrained('facebook/bart-base')
+tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
 train_objects, val_objects, train_narratives, val_narratives = train_test_split(objects, narratives, test_size=.2)
 
 train_dataset = NarrativesDataset(tokenizer, train_objects, train_narratives)
 val_dataset = NarrativesDataset(tokenizer, val_objects, val_narratives)
 
-print(train_dataset.__len__())
-print(val_dataset.__len__())
-
 training_args = TrainingArguments(
     output_dir='./results',
-    num_train_epochs=3,
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=8,
+    learning_rate=5e-5,
+    warmup_steps=100,
+    num_train_epochs=5,
+    per_device_train_batch_size=32,
+    per_device_eval_batch_size=16,
     weight_decay=0.01,
     logging_dir='./logs',
-    logging_steps=10,
-    save_steps=100
+    logging_steps=250,
+    save_steps=1000
 )
 
 trainer = Trainer(
@@ -63,4 +62,4 @@ tokenizer.save_pretrained(training_args.output_dir)
 
 eval_results = trainer.evaluate()
 for key, value in eval_results.items():
-    print("  %s = %s", key, value)
+    print(key, value)
