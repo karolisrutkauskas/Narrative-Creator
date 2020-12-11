@@ -1,8 +1,9 @@
 import transformers
-from transformers.modeling_bart import shift_tokens_right
+from transformers.models.bart.modeling_bart import shift_tokens_right
 import torch
 import config as config
 from typing import Dict
+import random
 
 class NarrativesDataset(torch.utils.data.Dataset):
     def __init__(self, tokenizer, src, tgt):
@@ -12,6 +13,8 @@ class NarrativesDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx) -> Dict[str, str]:
         src_text = self.src[idx]
+        random.shuffle(src_text)
+        src_text = ' '.join(src_text)
         tgt_text = self.tgt[idx]
         return {"src_text": src_text, "tgt_text": tgt_text, "id": idx}
 
