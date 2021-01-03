@@ -20,8 +20,10 @@ def read_dataset(path):
     return object_list, narrative_list
 
 dataset_path = sys.argv[1]
+val_dataset_path = sys.argv[2]
 
-objects, narratives = read_dataset(dataset_path)
+train_objects, train_narratives = read_dataset(dataset_path)
+val_objects, val_narratives = read_dataset(val_dataset_path)
 
 # objects = objects[:30000]
 # narratives = narratives[:30000]
@@ -29,7 +31,7 @@ objects, narratives = read_dataset(dataset_path)
 model = BartForConditionalGeneration.from_pretrained('facebook/bart-base')
 tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')
 
-train_objects, val_objects, train_narratives, val_narratives = train_test_split(objects, narratives, test_size=.2)
+# train_objects, val_objects, train_narratives, val_narratives = train_test_split(objects, narratives, test_size=.2)
 
 train_dataset = NarrativesDataset(tokenizer, train_objects, train_narratives)
 val_dataset = NarrativesDataset(tokenizer, val_objects, val_narratives)
@@ -39,12 +41,13 @@ training_args = TrainingArguments(
     learning_rate=5e-5,
     warmup_steps=100,
     num_train_epochs=5,
-    per_device_train_batch_size=32,
+    per_device_train_batch_size=1,
+    no_cuda=False,
     per_device_eval_batch_size=16,
     weight_decay=0.01,
     logging_dir='./logs',
     logging_steps=250,
-    save_steps=1000
+    save_steps=10000
 )
 
 trainer = Trainer(
